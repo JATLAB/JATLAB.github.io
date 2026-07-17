@@ -1,4 +1,4 @@
-#zhihengcao/jatlab
+# JATLAB
 JATLAB: Use your browser as Scientific Calculator [http://jatlab.github.io/jatlab/](http://jatlab.github.io/jatlab/)
 
 ## Motivation
