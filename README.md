@@ -14,7 +14,7 @@ With JATLAB, from modern Desktop web browsers (Chrome,Edge,etc) load [jatlab.git
 - All Javascript math functions available in Math.* can be used *without* typing `Math.` in front, such as:
 	- `sin`,`cos`,`tan`,`exp`,`log10`,`log`,`sqrt`,...
 	- Most of these functions are extended to *accept 1D or 2D array as input* and returns 1D or 2D array
-	- Many MATLAB statistic functions such as `rms`,`mean`,`abs`, `sum`. 
+	- Many MATLAB statistic functions such as `rms`,`mean`,`abs`, `sum`, `max`, `min`. They support 1D array of real or complex (2 element array) numbers. 
 - Most commonly used MATLAB features are availble:
 	- Plotting: `plot`,`figure`,`close`,`holdon`,`holdoff`,`legend`,`xlabel`,`ylabel`,`title`,`semilogx`,`semilogy`,`loglog`
 	- Some 3D Plotting: `contour`,`heatmap`
@@ -35,6 +35,15 @@ legend('sin','cos');
 ```
 [![Basic plot example](example1.png)](http://jatlab.github.io/)
 
+### Basic Arithmetic of Arrays
+Unlike MATLAB Javascript does not allow elementwise "+" or "*" for vector/arrays. Do the following instead:
+```js
+a=[1,2,3]; b=[5,5,5]; 
+scale(a,2)    // [2, 4, 6]
+add(a,b)	  // [6, 7, 8]
+scale(a,b)	  // [5, 10, 15]
+dot(a,b)	  // 30
+```
 
 ### 3D Plotting of Time Marched Burger's Equation dy/dt = -y*dy/dx
 ```js
@@ -49,15 +58,34 @@ let y=ode23(dwdt, tspan, y0);
 heatmap(y);
 xlabel('x'); ylabel('Time');
 ```
+[![3D plot example](example2.png)](http://jatlab.github.io/)
 
 ### Saving and Loading CSV Files
 ```js
 csvwrite(y,'burger.csv');
 ```
+[![Download example](download_example.png)](http://jatlab.github.io/)
 Later
 ```js
 let yt = await csvread();
-heatmap(log(yt));
+heatmap(log(yt.map(y=>add(y,1.1))))
+xlabel('x'); ylabel('Time'); zlabel('log(y+1.1)');
 ```
-This produces the same plot except in log scale. The log file is 
+This produces the same plot except in log scale. 
+[![3D plot example 2](example3.png)](http://jatlab.github.io/)
+
 Note that due to security Javascript is not allowed to read programmatically generated file name, the user needs to manually select the CSV file using File chooser.
+
+### FFT Plot of Delta-Sigma Modulator
+```js
+var accum=0;
+function dsm(vin){
+	accum= accum+vin;
+	if(accum>1+randn()*1e-3){
+		accum-=1; return 1;
+	}else return 0;
+}
+let dout = add(0.5,scale(0.5,sin(linspace(0,100*PI,65536)))).map((vin)=>dsm(vin));
+semilogx(scale(20,log10(abs(fft(dout)))))
+```
+[![FFT example](fft_example.png)](http://jatlab.github.io/)

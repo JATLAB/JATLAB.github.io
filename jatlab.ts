@@ -2,34 +2,64 @@ import * as HighCharts from 'highcharts';
 import 'highcharts/modules/contour';
 import 'highcharts/modules/heatmap';
 //ContourModule(HighCharts);
-import * as FFT from 'fft-js';
+import * as FFT from 'fourier-transform';
 
-const isPowerOfTwo = num => num > 0 && (num & (num - 1)) === 0;
-export function fft(x){
-	if(isPowerOfTwo(x))return FFT.fft(x);
-	else return FFT.dft(x);
-}
-export function ifft(x){
-	if(isPowerOfTwo(x))return FFT.ifft(x);
-	else return FFT.idft(x);
+//const isPowerOfTwo = num => num > 0 && (num & (num - 1)) === 0;
+export function fft(x) {
+	let [re,imag]=FFT.fft(x) as [Float64Array,Float64Array];
+	let ret=[];
+	for (let i = 0; i < re.length; i++) ret.push([re[i],imag[i]]);
+	return ret;
 }
 
 // input: a list of real number or a list of complex numbers or vector in the form [real,imag], which results in a list of complex number or vector
 export function abs(aoa:number[]|number[][]|number){
 	if(!Array.isArray(aoa))return Math.abs(aoa as number);
 	let isAA = Array.isArray(aoa[0]);
-	if(isAA)return (aoa as number[][]).map(c=>Math.sqrt(c.reduce((p,c)=>p+c*c) ));
+	if(isAA)return (aoa as number[][]).map(cn=>Math.sqrt(cn.reduce( (p,c)=>p+c*c, 0  ) ));
 	else{
-		let c= aoa as number[]; return Math.sqrt( c.reduce((p,c)=>p+c*c) );
+		let c= aoa as number[]; return Math.sqrt( c.reduce((p,c)=>p+c*c, 0) );
+	}
+}
+export function add(a,b){
+	let isa_a=Array.isArray(a), isa_b=Array.isArray(b);
+	if(!isa_a && !isa_b)return a+b;
+	if(!isa_a && isa_b)a=Array(b.length).fill(a);
+	if(isa_a && !isa_b)b=Array(a.length).fill(b);
+	return a.map((au,i)=>au+b[i]);
+}
+export function scale(a,b){
+	let isa_a=Array.isArray(a), isa_b=Array.isArray(b);
+	if(!isa_a && !isa_b)return a+b;
+	if(!isa_a && isa_b)a=Array(b.length).fill(a);
+	if(isa_a && !isa_b)b=Array(a.length).fill(b);
+	return a.map((au,i)=>au*b[i]);
+}
+export function dot(a,b){
+	return scale(a,b).reduce((p,c)=>p+c);
+}
+
+export function max(aoa:number[]|number[][]){
+	let isAA = Array.isArray(aoa[0]);
+	if(isAA)return (aoa as number[][]).map(c=>c.reduce((p,c)=>Math.max(p,c)) ).reduce((p,c)=>Math.max(p,c)) ;
+	else{
+		let c= aoa as number[]; return c.reduce((p,c)=>Math.max(p,c));
+	}
+}
+export function min(aoa:number[]|number[][]){
+	let isAA = Array.isArray(aoa[0]);
+	if(isAA)return (aoa as number[][]).map(c=>c.reduce((p,c)=>Math.min(p,c)) ).reduce((p,c)=>Math.min(p,c)) ;
+	else{
+		let c= aoa as number[]; return c.reduce((p,c)=>Math.min(p,c));
 	}
 }
 
 // input: a list of real number or a list of complex numbers in the form [real,imag], result is single scalar in all cases
 export function rms(aoa:number[]|number[][]){
 	let isAA = Array.isArray(aoa[0]);
-	if(isAA)return Math.sqrt((aoa as number[][]).map(c=>c.reduce((p,c)=>p+c*c) ).reduce((p,c)=>p+c*c)/aoa.length/(aoa[0] as number[]).length  );
+	if(isAA)return Math.sqrt((aoa as number[][]).map(c=>c.reduce((p,c)=>p+c*c,0 ) ).reduce((p,c)=>p+c*c,0)/aoa.length/(aoa[0] as number[]).length  );
 	else{
-		let c= aoa as number[]; return Math.sqrt( c.reduce((p,c)=>p+c*c)/c.length );
+		let c= aoa as number[]; return Math.sqrt( c.reduce((p,c)=>p+c*c,0)/c.length );
 	}
 }
 
@@ -185,6 +215,7 @@ export function legend(...names ){
 export function title(title: string){
 	chart.update({title:{text: title}});
 }
+
 export function logspace(x1,x2,n){
 	n=n??50;
 	let r=[]; let step=(x2-x1)/n;
@@ -204,6 +235,9 @@ export function xlabel(label){
 }
 export function ylabel(label){
 	chart.yAxis[0].setTitle({text: label});
+}
+export function zlabel(label){
+	chart.colorAxis[0].setTitle({text: label});
 }
 
 // func: (t,y)=>dy/dt
@@ -301,6 +335,12 @@ export function hanning(N:number){
 	}
 	return win;
 }
+export function randn(){
+	let u1 = 1 - Math.random(); // Subtracted from 1 to avoid log(0)
+    let u2 = Math.random();
+    // Box-Muller transform formula
+    return Math.sqrt(-2.0 * Math.log(u1)) * Math.cos(2.0 * Math.PI * u2);
+}
 if (typeof window !== 'undefined') {
 	Object.getOwnPropertyNames(Math).forEach(prop => {
 		let arglen=Math[prop].length;
@@ -325,13 +365,16 @@ if (typeof window !== 'undefined') {
 	});
 	window.plot = plot; window.semilogx=semilogx; window.semilogy=semilogy; window.loglog=loglog;
 	window.cplot=cplot; window.holdon=holdon; window.holdoff=holdoff; window.chart=chart;
-	window.title=title; window.xlabel=xlabel; window.ylabel=ylabel;
+	window.title=title; window.xlabel=xlabel; window.ylabel=ylabel; window.zlabel=zlabel;
 	window.legend=legend; window.ode23=ode23; window.ode=ode; window.contour=contour; window.heatmap=heatmap; 
 	window.csvread=csvread; window.csvwrite=csvwrite; window.csvread2=csvread2;
-	window.figure=figure; window.close=close; window.fft=fft; window.ifft=ifft; 
-	window.abs=abs; window.angle=angle; window.real=real; window.imag=imag; window.mean=mean; window.sum=sum; window.rms=rms; 
+	window.figure=figure; window.close=close; window.fft=fft;
+	window.abs=abs; window.angle=angle; window.real=real; window.imag=imag; window.mean=mean; window.sum=sum; window.rms=rms; window.max=max; window.min=min;
 	window.linspace=linspace; window.logspace=logspace;
 	window.hanning=hanning; 
+	window.add=add; window.scale=scale; window.dot=dot;
+	window.rand=Math.random; window.randn=randn;
+
 
 }
 

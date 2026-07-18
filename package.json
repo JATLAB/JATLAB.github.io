@@ -14,7 +14,7 @@
         "vite": "^6.0.3"
     },
     "dependencies": {
-        "fft-js": "^0.0.12",
+        "fourier-transform": "^2.4.1",
         "highcharts": "^12.6.0"
     }
 }
