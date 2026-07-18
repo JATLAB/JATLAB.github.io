@@ -113,12 +113,15 @@ M=[
 M[1][0]  //u21, note array indice starts from 0 in Javascript
 ```
 A matrix can be given directly to 3D plot functions `heatmap` or `contour`. All math functions are expanded to support both arrays and matrices elementwise, except:
-- For `abs`, if given a matrix, it will find vector length of each sub vectors and returns an array of lengths
-- For `mean` and `rms`, if given a matrix, will treat all elements in the matrix as a single array and return a single scalar representing the mean or rms.
+- For `abs`, if given a matrix, it will find vector length of each sub vectors and returns an array of lengths, for example:
+	```js
+	abs([[3,4],[1,-1]])   // [5, sqrt(2)]
+	``` 
 - For `sum` if given matrix will return an array of sums, for example
 	```js
 	sum([[1,2,3],[10,10,10],[5,5,5]])   // [16, 17, 18]
 	``` 
+- For `mean` and `rms`, if given a matrix, will treat all elements in the matrix as a single array and return a single scalar representing the mean or rms of every element.
 - `dot` only supports two 1D-array as input
 
 If you need higher dimension like array of array of array, use `map` or `reduce`:
