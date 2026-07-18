@@ -55,8 +55,8 @@ function scale_vector_elementwise(v1,v2){
 export function scale(a,b){
 	let isa_a=Array.isArray(a), isa_b=Array.isArray(b);
 	if(!isa_a && !isa_b)return a*b;
-	if(!isa_a && isa_b)scale_vector(a,b);
-	if(isa_a && !isa_b)scale_vector(b,a);
+	if(!isa_a && isa_b)return scale_vector(a,b);
+	if(isa_a && !isa_b)return scale_vector(b,a);
 	return scale_vector_elementwise(a,b);
 }
 export function dot(a,b){
